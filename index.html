@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDMAN NEXUS</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --black:#000;
+  --green:#00ff41;
+  --green-dim:#008f11;
+  --gold:#ffd700;
+  --purple:#a855f7;
+  --cyan:#00ffff;
+  --red:#ff3355;
+  --text:#e0ffe0;
+  --text-dim:#4a7a4a;
+}
+
+html,body{
+  width:100%;
+  min-height:100vh;
+  background:var(--black);
+  color:var(--text);
+  font-family:'JetBrains Mono','Cairo',monospace;
+  overflow-x:hidden;
+}
+
+/* ===== MATRIX RAIN ===== */
+#matrixCanvas{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  z-index:1;
+  background:#000;
+}
+
+.grid-overlay{
+  position:fixed;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,255,65,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,65,0.04) 1px, transparent 1px);
+  background-size:50px 50px;
+}
+
+.scanline{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:2px;
+  background:linear-gradient(90deg, transparent, var(--green), transparent);
+  z-index:100;
+  opacity:0.5;
+  animation:scanline 8s linear infinite;
+  pointer-events:none;
+}
+
+@keyframes scanline{0%{top:0}100%{top:100%}}
+
+.vignette{
+  position:fixed;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  background:radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.85) 100%);
+}
+
+/* ===== HEADER ===== */
+.nexus-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 20px;
+  background:rgba(0,10,0,0.85);
+  border-bottom:1px solid rgba(0,255,65,0.3);
+  backdrop-filter:blur(20px);
+  position:sticky;
+  top:0;
+  z-index:50;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.nexus-logo{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.nexus-logo-icon{
+  width:44px;height:44px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#00ff41,#008f11);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;
+  box-shadow:0 0 25px rgba(0,255,65,0.6);
+  animation:logoPulse 2s ease-in-out infinite;
+}
+
+@keyframes logoPulse{
+  0%,100%{box-shadow:0 0 25px rgba(0,255,65,0.6)}
+  50%{box-shadow:0 0 45px rgba(0,255,65,0.9)}
+}
+
+.nexus-logo-text{
+  font-size:1.05rem;
+  font-weight:900;
+  color:var(--green);
+  letter-spacing:3px;
+  text-shadow:0 0 10px var(--green), 0 0 20px var(--green);
+}
+
+.nexus-logo-sub{
+  font-size:0.55rem;
+  color:var(--text-dim);
+  letter-spacing:3px;
+  margin-top:-2px;
+}
+
+.nexus-header-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.nexus-stat{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  padding:6px 12px;
+  background:rgba(0,255,65,0.08);
+  border:1px solid rgba(0,255,65,0.3);
+  border-radius:8px;
+  font-size:0.72rem;
+  font-weight:700;
+  color:var(--green);
+}
+
+.nexus-stat-val{color:var(--green);text-shadow:0 0 8px var(--green)}
+
+.nexus-rank{
+  padding:6px 14px;
+  background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(0,255,65,0.1));
+  border:1px solid rgba(168,85,247,0.4);
+  border-radius:8px;
+  font-size:0.72rem;
+  font-weight:700;
+  color:#c084fc;
+}
+
+.nexus-icon-btn{
+  width:38px;height:38px;
+  border-radius:10px;
+  background:rgba(0,255,65,0.08);
+  border:1px solid rgba(0,255,65,0.3);
+  color:var(--green);
+  font-size:1.1rem;
+  cursor:pointer;
+  transition:all 0.3s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.nexus-icon-btn:hover{
+  background:rgba(0,255,65,0.2);
+  transform:rotate(90deg);
+  box-shadow:0 0 20px rgba(0,255,65,0.5);
+}
+
+/* ===== BODY ===== */
+.nexus-body{
+  position:relative;
+  z-index:15;
+  max-width:1200px;
+  margin:0 auto;
+  padding:30px 20px 100px;
+}
+
+.nexus-hero{
+  text-align:center;
+  padding:20px 15px 30px;
+}
+
+.nexus-hero-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 16px;
+  background:rgba(0,255,65,0.08);
+  border:1px solid rgba(0,255,65,0.3);
+  border-radius:20px;
+  font-size:0.7rem;
+  font-weight:700;
+  color:var(--green);
+  letter-spacing:2px;
+  margin-bottom:18px;
+}
+
+.live-dot{
+  width:8px;height:8px;
+  background:var(--green);
+  border-radius:50%;
+  box-shadow:0 0 10px var(--green);
+  animation:livePulse 1.5s infinite;
+}
+
+@keyframes livePulse{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:0.5;transform:scale(1.4)}
+}
+
+.nexus-hero-title{
+  font-size:clamp(1.6rem,5vw,2.5rem);
+  font-weight:900;
+  letter-spacing:4px;
+  margin-bottom:12px;
+  line-height:1.2;
+}
+
+.nexus-hero-title .glitch{
+  color:var(--green);
+  text-shadow:0 0 20px var(--green), 0 0 40px var(--green);
+}
+
+.nexus-hero-title .accent{
+  color:var(--gold);
+  text-shadow:0 0 20px var(--gold), 0 0 40px var(--gold);
+  margin-right:15px;
+}
+
+.nexus-hero-sub{
+  color:var(--text-dim);
+  font-size:0.85rem;
+  letter-spacing:1px;
+  margin-bottom:25px;
+}
+
+.nexus-progress{
+  max-width:500px;
+  margin:0 auto;
+  padding:15px;
+  background:rgba(0,255,65,0.03);
+  border:1px solid rgba(0,255,65,0.2);
+  border-radius:12px;
+}
+
+.nexus-progress-header{
+  display:flex;
+  justify-content:space-between;
+  font-size:0.75rem;
+  font-weight:700;
+  color:var(--green);
+  margin-bottom:8px;
+  letter-spacing:1px;
+}
+
+.nexus-progress-bar{
+  height:6px;
+  background:rgba(0,255,65,0.1);
+  border-radius:3px;
+  overflow:hidden;
+}
+
+.nexus-progress-fill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#008f11,#00ff41);
+  box-shadow:0 0 15px var(--green);
+  transition:width 0.8s ease;
+}
+
+.nexus-sections-title{
+  text-align:center;
+  font-size:1rem;
+  font-weight:900;
+  color:var(--green);
+  letter-spacing:4px;
+  margin:25px 0 20px;
+  text-shadow:0 0 10px var(--green);
+}
+
+.bracket{color:var(--gold);font-weight:900}
+
+.neural-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:14px;
+}
+
+.neural-card{
+  padding:18px;
+  background:rgba(0,10,0,0.7);
+  border:1px solid rgba(0,255,65,0.25);
+  border-radius:14px;
+  cursor:pointer;
+  transition:all 0.4s;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  backdrop-filter:blur(10px);
+  position:relative;
+  overflow:hidden;
+}
+
+.neural-card::before{
+  content:'';
+  position:absolute;
+  top:0;right:0;
+  width:3px;height:100%;
+  background:var(--green);
+  transform:scaleY(0);
+  transition:transform 0.4s;
+  box-shadow:0 0 20px var(--green);
+}
+
+.neural-card:hover{
+  border-color:rgba(0,255,65,0.7);
+  transform:translateY(-5px);
+  box-shadow:0 15px 40px rgba(0,255,65,0.25);
+  background:rgba(0,20,0,0.85);
+}
+
+.neural-card:hover::before{transform:scaleY(1)}
+
+.neural-card-icon{
+  width:48px;height:48px;
+  border-radius:10px;
+  background:rgba(0,255,65,0.1);
+  border:1px solid rgba(0,255,65,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;
+  transition:all 0.4s;
+}
+
+.neural-card:hover .neural-card-icon{
+  background:linear-gradient(135deg,#00ff41,#008f11);
+  box-shadow:0 0 25px rgba(0,255,65,0.6);
+  transform:scale(1.1) rotate(-5deg);
+}
+
+.neural-card-title{
+  font-size:0.9rem;
+  font-weight:900;
+  color:var(--green);
+  letter-spacing:1px;
+  text-shadow:0 0 8px rgba(0,255,65,0.5);
+}
+
+.neural-card-desc{
+  font-size:0.72rem;
+  color:var(--text-dim);
+  line-height:1.5;
+}
+
+.neural-card-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding-top:10px;
+  border-top:1px solid rgba(0,255,65,0.1);
+  margin-top:auto;
+}
+
+.neural-card-badge{
+  padding:3px 8px;
+  background:rgba(0,255,65,0.1);
+  border:1px solid rgba(0,255,65,0.3);
+  border-radius:6px;
+  font-size:0.6rem;
+  font-weight:700;
+  color:var(--green);
+  letter-spacing:1px;
+}
+
+.neural-card-arrow{
+  color:var(--text-dim);
+  font-size:0.9rem;
+  transition:all 0.4s;
+}
+
+.neural-card:hover .neural-card-arrow{
+  color:var(--green);
+  transform:translateX(-5px);
+}
+
+/* ===== STATUS BAR ===== */
+.nexus-status-bar{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 20px;
+  background:rgba(0,10,0,0.9);
+  border-top:1px solid rgba(0,255,65,0.3);
+  font-size:0.68rem;
+  color:var(--text-dim);
+  z-index:50;
+  backdrop-filter:blur(20px);
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.status-item{display:flex;align-items:center;gap:6px;letter-spacing:1px}
+
+.status-dot{
+  width:6px;height:6px;
+  background:var(--green);
+  border-radius:50%;
+  box-shadow:0 0 8px var(--green);
+  animation:livePulse 1.5s infinite;
+}
+
+/* ===== MODAL ===== */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.95);
+  backdrop-filter:blur(10px);
+  z-index:1000;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+  animation:fadeIn 0.3s;
+}
+
+.modal-overlay.active{display:flex}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal-box{
+  background:linear-gradient(135deg,rgba(0,15,0,0.98),rgba(0,5,0,0.98));
+  border:2px solid var(--green);
+  border-radius:16px;
+  padding:30px 25px;
+  max-width:550px;
+  width:100%;
+  max-height:90vh;
+  overflow-y:auto;
+  box-shadow:0 0 60px rgba(0,255,65,0.4);
+  position:relative;
+  animation:modalSlide 0.4s ease;
+}
+
+@keyframes modalSlide{
+  from{transform:scale(0.9) translateY(30px);opacity:0}
+  to{transform:scale(1) translateY(0);opacity:1}
+}
+
+.modal-close{
+  position:absolute;
+  top:15px;left:15px;
+  width:32px;height:32px;
+  border-radius:50%;
+  background:rgba(255,51,85,0.1);
+  border:1px solid rgba(255,51,85,0.4);
+  color:var(--red);
+  cursor:pointer;
+  font-size:1rem;
+  transition:all 0.3s;
+  font-family:inherit;
+}
+
+.modal-close:hover{
+  background:rgba(255,51,85,0.3);
+  transform:rotate(90deg);
+}
+
+.modal-title{
+  font-size:1.15rem;
+  font-weight:900;
+  color:var(--green);
+  letter-spacing:2px;
+  margin-bottom:18px;
+  text-shadow:0 0 10px var(--green);
+  padding-right:35px;
+}
+
+/* ===== Animation Helpers ===== */
+@keyframes successPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.2)}
+}
+
+@keyframes attackShake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-5px)}
+  75%{transform:translateX(5px)}
+}
+
+/* ===== Responsive ===== */
+@media (max-width:768px){
+  .nexus-header{padding:10px 12px}
+  .nexus-logo-icon{width:38px;height:38px;font-size:1.2rem}
+  .nexus-logo-text{font-size:0.85rem;letter-spacing:2px}
+  .nexus-logo-sub{font-size:0.5rem}
+  .nexus-stat{padding:5px 8px;font-size:0.65rem}
+  .nexus-rank{padding:5px 10px;font-size:0.65rem}
+  .nexus-icon-btn{width:34px;height:34px;font-size:1rem}
+
+  .nexus-body{padding:20px 12px 80px}
+  .nexus-hero-title{font-size:1.5rem;letter-spacing:3px}
+  .nexus-hero-sub{font-size:0.75rem}
+
+  .neural-grid{grid-template-columns:1fr;gap:10px}
+  .neural-card{padding:15px}
+  .neural-card-icon{width:42px;height:42px;font-size:1.3rem}
+  .neural-card-title{font-size:0.85rem}
+  .neural-card-desc{font-size:0.68rem}
+
+  .nexus-status-bar{padding:5px 12px;font-size:0.6rem}
+  .modal-box{padding:22px 18px}
+  .modal-title{font-size:1rem}
+}
+</style>
+</head>
+<body>
+
+<!-- Scanline -->
+<div class="scanline"></div>
+<!-- Grid -->
+<div class="grid-overlay"></div>
+<!-- Vignette -->
+<div class="vignette"></div>
+
+<!-- Matrix Rain -->
+<canvas id="matrixCanvas"></canvas>
+
+<!-- HEADER -->
+<header class="nexus-header">
+  <div class="nexus-logo">
+    <div class="nexus-logo-icon">👑</div>
+    <div>
+      <div class="nexus-logo-text">EDMAN NEXUS</div>
+      <div class="nexus-logo-sub">CYBERSECURITY UNIVERSE</div>
+    </div>
+  </div>
+  <div class="nexus-header-right">
+    <div class="nexus-stat">
+      <span>⭐</span>
+      <span>XP</span>
+      <span class="nexus-stat-val" id="xpDisplay">0</span>
+    </div>
+    <div class="nexus-stat">
+      <span>🏆</span>
+      <span>LVL</span>
+      <span class="nexus-stat-val" id="levelDisplay">1</span>
+    </div>
+    <div class="nexus-rank" id="rankDisplay">🥚 مبتدئ</div>
+    <button class="nexus-icon-btn" onclick="openSettings()" title="الإعدادات">⚙️</button>
+  </div>
+</header>
+
+<!-- BODY -->
+<main class="nexus-body">
+
+  <!-- Hero -->
+  <div class="nexus-hero">
+    <div class="nexus-hero-badge">
+      <span class="live-dot"></span>
+      <span>SYSTEM ONLINE</span>
+    </div>
+    <h1 class="nexus-hero-title">
+      <span class="glitch accent">WELCOME</span>
+      <span class="glitch">HACKER</span>
+    </h1>
+    <p class="nexus-hero-sub">عالم سيبراني كامل — اختر مغامرتك وابدأ رحلتك</p>
+
+    <div class="nexus-progress">
+      <div class="nexus-progress-header">
+        <span>📊 PROGRESS</span>
+        <span id="progressVal">0%</span>
+      </div>
+      <div class="nexus-progress-bar">
+        <div class="nexus-progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sections -->
+  <div class="nexus-sections-title">
+    <span class="bracket">[</span>
+    SELECT MISSION
+    <span class="bracket">]</span>
+  </div>
+
+  <div class="neural-grid" id="neuralGrid"></div>
+
+</main>
+
+<!-- STATUS BAR -->
+<div class="nexus-status-bar">
+  <div class="status-item">
+    <span class="status-dot"></span>
+    <span>CONNECTED</span>
+  </div>
+  <div class="status-item">
+    <span id="currentTime">--:--:--</span>
+  </div>
+  <div class="status-item">
+    <span>v1.0.0</span>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="sectionModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modalTitle"></div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================
+   EDMAN NEXUS — Main JavaScript
+   ============================================ */
+
+/* ===== Matrix Rain ===== */
+const canvas = document.getElementById('matrixCanvas');
+const ctx = canvas.getContext('2d');
+
+let width = window.innerWidth;
+let height = window.innerHeight;
+canvas.width = width;
+canvas.height = height;
+
+const chars = 'アカサタナハマヤラワ0123456789ABCDEFabcdef<>/\\|=-+*&^%$#@!';
+const charsArray = chars.split('');
+const fontSize = 16;
+let columns = Math.floor(width / fontSize);
+let drops = [];
+
+for (let i = 0; i < columns; i++) {
+  drops[i] = Math.random() * height / fontSize;
+}
+
+function drawMatrix() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = '#00ff41';
+  ctx.font = fontSize + 'px monospace';
+  ctx.shadowColor = '#00ff41';
+  ctx.shadowBlur = 8;
+  for (let i = 0; i < drops.length; i++) {
+    const text = charsArray[Math.floor(Math.random() * charsArray.length)];
+    const x = i * fontSize;
+    const y = drops[i] * fontSize;
+    ctx.fillText(text, x, y);
+    if (y > height && Math.random() > 0.975) drops[i] = 0;
+    drops[i]++;
+  }
+  ctx.shadowBlur = 0;
+}
+
+window.addEventListener('resize', () => {
+  width = window.innerWidth;
+  height = window.innerHeight;
+  canvas.width = width;
+  canvas.height = height;
+  columns = Math.floor(width / fontSize);
+  drops = [];
+  for (let i = 0; i < columns; i++) drops[i] = Math.random() * height / fontSize;
+});
+
+setInterval(drawMatrix, 40);
+
+/* ============================================
+   SECTIONS CONFIG
+   ============================================ */
+const SECTIONS = [
+  { id: 'hack', icon: '🎯', nameAr: 'محاكي الاختراق', desc: '3 مهام اختراق تفاعلية', badge: 'HACK' },
+  { id: 'defense', icon: '🛡️', nameAr: 'ساحة الدفاع', desc: 'صد 10 هجمات سيبرانية', badge: 'DEFEND' },
+  { id: 'osint', icon: '🔍', nameAr: 'مختبر التحليل', desc: '4 أدوات جمع معلومات', badge: 'OSINT' },
+  { id: 'leaderboard', icon: '🏆', nameAr: 'لوحة الصدارة', desc: 'إحصائياتك وترتيبك', badge: 'RANK' }
+];
+
+/* ===== Game State ===== */
+let gameState = {
+  xp: parseInt(localStorage.getItem('nexus-xp')) || 0,
+  level: parseInt(localStorage.getItem('nexus-level')) || 1
+};
+
+/* ===== Render Sections ===== */
+function renderSections() {
+  const grid = document.getElementById('neuralGrid');
+  if (!grid) return;
+  grid.innerHTML = SECTIONS.map(sec => `
+    <div class="neural-card" onclick="openSection('${sec.id}')">
+      <div class="neural-card-icon">${sec.icon}</div>
+      <div class="neural-card-title">${sec.nameAr}</div>
+      <div class="neural-card-desc">${sec.desc}</div>
+      <div class="neural-card-footer">
+        <span class="neural-card-badge">${sec.badge}</span>
+        <span class="neural-card-arrow">←</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ===== Open Section ===== */
+function openSection(id) {
+  if (id === 'hack') openHack();
+  else if (id === 'defense') openDefense();
+  else if (id === 'osint') openOSINT();
+  else if (id === 'leaderboard') openLeaderboard();
+}
+
+/* ============================================
+   RANKS & XP
+   ============================================ */
+const RANKS = [
+  { min: 0, name: '🥚 مبتدئ' },
+  { min: 500, name: '🐣 هاكر مبتدئ' },
+  { min: 1500, name: '💻 سكريبت كيدي' },
+  { min: 3000, name: '🔥 هاكر محترف' },
+  { min: 5000, name: '💀 خبير أمني' },
+  { min: 8000, name: '👑 إدمان المدمر' },
+  { min: 12000, name: '🚀 أسطورة سيبرانية' }
+];
+
+function getRank(xp) {
+  let rank = RANKS[0];
+  for (const r of RANKS) {
+    if (xp >= r.min) rank = r;
+    else break;
+  }
+  return rank;
+}
+
+function addXP(amount) {
+  gameState.xp += amount;
+  const oldLevel = gameState.level;
+  gameState.level = Math.floor(gameState.xp / 500) + 1;
+  localStorage.setItem('nexus-xp', gameState.xp);
+  localStorage.setItem('nexus-level', gameState.level);
+  updateUI();
+  if (gameState.level > oldLevel) {
+    setTimeout(() => alert(`🎉 LEVEL UP!\n\nوصلت للمستوى ${gameState.level}!\nلقبك الجديد: ${getRank(gameState.xp).name}`), 300);
+  }
+}
+
+function updateUI() {
+  const xpEl = document.getElementById('xpDisplay');
+  const lvlEl = document.getElementById('levelDisplay');
+  const rankEl = document.getElementById('rankDisplay');
+  const pVal = document.getElementById('progressVal');
+  const pFill = document.getElementById('progressFill');
+
+  if (xpEl) xpEl.textContent = gameState.xp;
+  if (lvlEl) lvlEl.textContent = gameState.level;
+  if (rankEl) rankEl.textContent = getRank(gameState.xp).name;
+
+  const p = Math.min(100, Math.round((gameState.xp / 12000) * 100));
+  if (pVal) pVal.textContent = p + '%';
+  if (pFill) pFill.style.width = p + '%';
+}
+
+/* ============================================
+   MODAL Helpers
+   ============================================ */
+function openModal(title, html) {
+  const modal = document.getElementById('sectionModal');
+  document.getElementById('modalTitle').innerHTML = title;
+  document.getElementById('modalContent').innerHTML = html;
+  modal.classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('sectionModal').classList.remove('active');
+}
+
+document.getElementById('sectionModal')?.addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+/* ============================================
+   🎯 HACK SIMULATOR
+   ============================================ */
+const HACK_MISSIONS = [
+  {
+    id: 'h1', icon: '📱',
+    name: 'اختراق هاتف Android',
+    desc: 'اختبر ثغرة في هاتف أندرويد',
+    hint: 'استخدم ADB ثم Metasploit',
+    points: 100,
+    correct: ['adb', 'connect', 'shell', 'msfconsole', 'exploit'],
+    details: { '📱 الجهاز': 'Samsung S8', '🔓 الروت': 'مفعّل', '📸 الكاميرا': 'متاحة' }
+  },
+  {
+    id: 'h2', icon: '🌐',
+    name: 'اختراق شبكة WiFi',
+    desc: 'كسر تشفير WPA2',
+    hint: 'استخدم aircrack-ng',
+    points: 150,
+    correct: ['airmon', 'airodump', 'aireplay', 'aircrack', 'wlan'],
+    details: { '📶 الشبكة': 'Test_WiFi', '🔐 كلمة المرور': 'Found!', '📊 الإشارة': 'قوية' }
+  },
+  {
+    id: 'h3', icon: '🌍',
+    name: 'اختراق موقع ويب',
+    desc: 'استغل ثغرة SQL Injection',
+    hint: 'استخدم sqlmap',
+    points: 250,
+    correct: ['sqlmap', 'injection', 'database', 'dump', 'tables'],
+    details: { '🌍 الموقع': 'test-shop.com', '🗄️ القاعدة': 'MySQL', '👥 المستخدمين': '1500' }
+  }
+];
+
+function openHack() {
+  const completed = JSON.parse(localStorage.getItem('nexus-hack-done') || '[]');
+
+  let html = `<p style="color:#4a7a4a;font-size:0.8rem;margin-bottom:15px;text-align:center">اكتب الأوامر الصحيحة لكل مهمة</p>`;
+
+  HACK_MISSIONS.forEach((m, i) => {
+    const done = completed.includes(m.id);
+    const locked = i > 0 && !completed.includes(HACK_MISSIONS[i - 1].id);
+
+    html += `
+      <div onclick="${locked ? '' : `startHack('${m.id}')`}" style="
+        padding:14px;
+        background:rgba(0,255,65,0.03);
+        border:1px solid ${done ? '#00ff41' : locked ? '#333' : 'rgba(0,255,65,0.3)'};
+        border-radius:10px;
+        margin-bottom:10px;
+        cursor:${locked ? 'not-allowed' : 'pointer'};
+        opacity:${locked ? '0.5' : '1'};
+      ">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:1.6rem">${m.icon}</span>
+          <div style="flex:1">
+            <div style="color:#00ff41;font-weight:900;font-size:0.9rem">${done ? '✓ ' : ''}${m.name}</div>
+            <div style="color:#4a7a4a;font-size:0.72rem">${m.desc}</div>
+          </div>
+          <div style="color:#ffd700;font-size:0.75rem;font-weight:700">+${m.points}</div>
+        </div>
+      </div>
+    `;
+  });
+
+  openModal('🎯 HACK SIMULATOR', html);
+}
+
+function startHack(id) {
+  const m = HACK_MISSIONS.find(x => x.id === id);
+  if (!m) return;
+
+  const html = `
+    <p style="color:#4a7a4a;font-size:0.78rem;margin-bottom:12px">${m.desc}</p>
+    <div style="padding:10px;background:rgba(255,204,0,0.08);border-right:3px solid #ffcc00;border-radius:6px;font-size:0.75rem;color:#ffcc00;margin-bottom:15px">
+      💡 ${m.hint}
+    </div>
+    <div style="background:#000;border:1px solid #00ff41;border-radius:10px;padding:15px;font-family:monospace;font-size:0.78rem;min-height:140px;max-height:200px;overflow-y:auto;margin-bottom:15px" id="hackTerminal">
+      <div style="color:#00ffff">> اكتب الأوامر الصحيحة...</div>
+    </div>
+    <input type="text" id="hackInput" placeholder="اكتب الأمر..." style="
+      width:100%;padding:12px;background:#000;border:2px solid #00ff41;border-radius:8px;
+      color:#00ff41;font-family:monospace;font-size:0.85rem;outline:none;margin-bottom:10px;direction:ltr;text-align:left
+    " autocomplete="off">
+    <div style="display:flex;gap:8px">
+      <button onclick="submitHack('${m.id}')" style="flex:1;padding:12px;background:linear-gradient(135deg,#00ff41,#008f11);border:none;border-radius:8px;color:#000;font-weight:900;cursor:pointer;font-family:monospace">
+        ▶️ تنفيذ
+      </button>
+      <button onclick="openHack()" style="padding:12px 20px;background:rgba(255,51,85,0.2);border:1px solid #ff3355;border-radius:8px;color:#ff3355;font-weight:700;cursor:pointer;font-family:monospace">
+        ← رجوع
+      </button>
+    </div>
+  `;
+
+  openModal(`${m.icon} ${m.name}`, html);
+  window.currentHack = { m, attempts: [] };
+
+  setTimeout(() => {
+    const inp = document.getElementById('hackInput');
+    if (inp) {
+      inp.focus();
+      inp.addEventListener('keypress', e => { if (e.key === 'Enter') submitHack(m.id); });
+    }
+  }, 100);
+}
+
+function submitHack(id) {
+  const m = HACK_MISSIONS.find(x => x.id === id);
+  const inp = document.getElementById('hackInput');
+  const term = document.getElementById('hackTerminal');
+  const cmd = inp.value.trim().toLowerCase();
+  if (!cmd) return;
+
+  window.currentHack.attempts.push(cmd);
+
+  const line = document.createElement('div');
+  line.style.color = '#00ff41';
+  line.textContent = '> ' + cmd;
+  term.appendChild(line);
+  term.scrollTop = term.scrollHeight;
+  inp.value = '';
+
+  const attempts = window.currentHack.attempts;
+
+  if (attempts.length >= 3) {
+    const all = attempts.join(' ');
+    const matched = m.correct.filter(c => all.includes(c)).length;
+    const rate = matched / m.correct.length;
+
+    if (rate >= 0.6) {
+      // Success
+      addXP(m.points);
+
+         let detailsHTML = Object.entries(m.details).map(([k, v]) => 
+        `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(0,255,65,0.1)">
+          <span style="color:#4a7a4a;font-size:0.75rem">${k}</span>
+          <span style="color:#00ff41;font-weight:700;font-size:0.75rem">${v}</span>
+        </div>`
+      ).join('');
+
+      openModal('✅ ACCESS GRANTED', `
+        <div style="text-align:center;padding:15px 0">
+          <div style="font-size:4rem;margin-bottom:15px">✅</div>
+          <div style="color:#00ff41;font-size:1.2rem;font-weight:900;margin-bottom:10px">تم الاختراق بنجاح!</div>
+          <div style="color:#ffd700;font-size:1rem;font-weight:700;margin-bottom:20px">+${m.points} XP</div>
+          <div style="background:rgba(0,255,65,0.05);border:1px solid rgba(0,255,65,0.3);border-radius:10px;padding:15px;margin-bottom:20px;text-align:right">
+            <div style="color:#00ffff;font-size:0.75rem;margin-bottom:10px">🔓 معلومات الاختراق:</div>
+            ${detailsHTML}
+          </div>
+          <button onclick="openHack()" style="width:100%;padding:12px;background:linear-gradient(135deg,#00ff41,#008f11);border:none;border-radius:8px;color:#000;font-weight:900;cursor:pointer;font-family:monospace">
+            ➡️ رجوع للمهام
+          </button>
+        </div>
+      `);
+
+    } else {
+      // Failed
+      const roasts = [
+        '😂 امسح الهباب ده يا عم',
+        '💀 هتفضحنا قدام الهاكرز؟',
+        '🤦‍♂️ ده مش اختراق ده لعب عيال',
+        '😹 جرب تاني يا بطل',
+        '🔥 روح اتعلم الأساسيات'
+      ];
+      const roast = roasts[Math.floor(Math.random() * roasts.length)];
+
+      openModal('❌ FAILED', `
+        <div style="text-align:center;padding:15px 0">
+          <div style="font-size:4rem;margin-bottom:15px">💥</div>
+          <div style="color:#ff3355;font-size:1.2rem;font-weight:900;margin-bottom:15px">فشلت المهمة!</div>
+          <div style="padding:15px;background:rgba(255,51,85,0.1);border-right:3px solid #ff3355;border-radius:8px;margin-bottom:15px;color:#ff9955;font-weight:700;font-size:0.85rem;text-align:right">
+            ${roast}
+          </div>
+          <div style="color:#4a7a4a;font-size:0.78rem;margin-bottom:15px">
+            الأوامر المطلوبة: <span style="color:#00ff41">${m.correct.join(', ')}</span>
+          </div>
+          <button onclick="startHack('${m.id}')" style="width:100%;padding:12px;background:linear-gradient(135deg,#ff3355,#aa2233);border:none;border-radius:8px;color:#fff;font-weight:900;cursor:pointer;font-family:monospace">
+            🔄 حاول تاني
+          </button>
+        </div>
+      `);
+    }
+  } else {
+    const info = document.createElement('div');
+    info.style.color = '#00ffff';
+    info.style.fontSize = '0.7rem';
+    info.textContent = `⏳ محاولة ${attempts.length}/3...`;
+    term.appendChild(info);
+    term.scrollTop = term.scrollHeight;
+  }
+}
+
+/* ============================================
+   🛡️ DEFENSE ARENA
+   ============================================ */
+const DEFENSE_ATTACKS = [
+  { type: 'DDoS', icon: '💣', correct: 'firewall' },
+  { type: 'Phishing', icon: '🎣', correct: 'training' },
+  { type: 'Malware', icon: '🦠', correct: 'antivirus' },
+  { type: 'SQL Injection', icon: '💉', correct: 'waf' },
+  { type: 'Brute Force', icon: '🔨', correct: 'mfa' },
+  { type: 'Ransomware', icon: '🔒', correct: 'backup' },
+  { type: 'MITM Attack', icon: '🕵️', correct: 'vpn' },
+  { type: 'Zero-Day', icon: '👑', correct: 'ids' }
+];
+
+const DEFENSE_TOOLS = [
+  { id: 'firewall', icon: '🔥', name: 'Firewall' },
+  { id: 'antivirus', icon: '💊', name: 'Antivirus' },
+  { id: 'training', icon: '🎓', name: 'Training' },
+  { id: 'waf', icon: '🛡️', name: 'WAF' },
+  { id: 'mfa', icon: '🔐', name: 'MFA' },
+  { id: 'backup', icon: '💾', name: 'Backup' },
+  { id: 'vpn', icon: '🌐', name: 'VPN' },
+  { id: 'ids', icon: '👁️', name: 'IDS' }
+];
+
+function openDefense() {
+  const best = localStorage.getItem('nexus-defense-best') || '0';
+
+  openModal('🛡️ DEFENSE ARENA', `
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:3.5rem;margin-bottom:15px">🛡️</div>
+      <div style="color:#00ff41;font-size:1.1rem;font-weight:900;margin-bottom:10px">صد 10 هجمات سيبرانية</div>
+      <div style="color:#4a7a4a;font-size:0.82rem;margin-bottom:25px">اختر الدفاع الصح لكل هجوم</div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+        <div style="padding:12px;background:rgba(0,255,65,0.05);border:1px solid rgba(0,255,65,0.3);border-radius:8px">
+          <div style="color:#4a7a4a;font-size:0.7rem">🏆 أفضل نتيجة</div>
+          <div style="color:#ffd700;font-weight:900;font-size:1.1rem">${best}</div>
+        </div>
+        <div style="padding:12px;background:rgba(0,255,65,0.05);border:1px solid rgba(0,255,65,0.3);border-radius:8px">
+          <div style="color:#4a7a4a;font-size:0.7rem">⚔️ الجولات</div>
+          <div style="color:#ffd700;font-weight:900;font-size:1.1rem">10</div>
+        </div>
+      </div>
+      
+      <button onclick="startDefense()" style="width:100%;padding:14px;background:linear-gradient(135deg,#00ff41,#008f11);border:none;border-radius:10px;color:#000;font-weight:900;cursor:pointer;font-size:1rem;font-family:monospace">
+        ▶️ ابدأ اللعب
+      </button>
+    </div>
+  `);
+}
+
+let defenseState = { round: 0, score: 0, total: 10 };
+
+function startDefense() {
+  defenseState = { round: 0, score: 0, total: 10 };
+  nextDefenseRound();
+}
+
+function nextDefenseRound() {
+  defenseState.round++;
+
+  if (defenseState.round > defenseState.total) {
+    endDefense();
+    return;
+  }
+
+  const attack = DEFENSE_ATTACKS[Math.floor(Math.random() * DEFENSE_ATTACKS.length)];
+  const tools = [...DEFENSE_TOOLS].sort(() => Math.random() - 0.5).slice(0, 6);
+
+  if (!tools.find(t => t.id === attack.correct)) {
+    tools[0] = DEFENSE_TOOLS.find(t => t.id === attack.correct);
+  }
+
+  const toolsHTML = tools.sort(() => Math.random() - 0.5).map(t => `
+    <button onclick="answerDefense('${t.id}', '${attack.correct}')" style="
+      padding:12px;background:rgba(0,255,65,0.08);border:1px solid rgba(0,255,65,0.4);
+      border-radius:8px;color:#00ff41;cursor:pointer;font-weight:700;font-size:0.75rem;font-family:monospace
+    ">
+      ${t.icon} ${t.name}
+    </button>
+  `).join('');
+
+  openModal(`🛡️ ROUND ${defenseState.round}/${defenseState.total}`, `
+    <div style="text-align:center;margin-bottom:15px">
+      <div style="color:#4a7a4a;font-size:0.75rem">SCORE: <span style="color:#ffd700;font-weight:900">${defenseState.score}</span></div>
+    </div>
+    
+    <div style="text-align:center;padding:20px;background:rgba(255,51,85,0.1);border:2px solid #ff3355;border-radius:12px;margin-bottom:18px;animation:attackShake 0.5s">
+      <div style="font-size:3rem;margin-bottom:10px">${attack.icon}</div>
+      <div style="color:#ff3355;font-size:1.1rem;font-weight:900">⚠️ ${attack.type}</div>
+      <div style="color:#ff9955;font-size:0.72rem;margin-top:5px">هجوم قادم!</div>
+    </div>
+    
+    <div style="color:#00ff41;font-size:0.75rem;margin-bottom:10px;text-align:center">اختر الدفاع المناسب 👇</div>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${toolsHTML}
+    </div>
+  `);
+}
+
+function answerDefense(toolId, correctId) {
+  const isCorrect = toolId === correctId;
+  if (isCorrect) defenseState.score += 100;
+
+  if (isCorrect) {
+    openModal('✅ دفاع ناجح!', `
+      <div style="text-align:center;padding:30px 0">
+        <div style="font-size:4rem;color:#00ff41;margin-bottom:15px;animation:successPulse 0.5s">🛡️</div>
+        <div style="color:#00ff41;font-size:1.2rem;font-weight:900;margin-bottom:15px">صد ناجح!</div>
+        <div style="color:#ffd700;font-size:1rem;margin-bottom:15px">+100 نقطة</div>
+        <div style="color:#4a7a4a;font-size:0.75rem">SCORE: ${defenseState.score}</div>
+      </div>
+    `);
+    setTimeout(nextDefenseRound, 800);
+  } else {
+    openModal('❌ الهجوم نجح!', `
+      <div style="text-align:center;padding:30px 0">
+        <div style="font-size:4rem;color:#ff3355;margin-bottom:15px">💥</div>
+        <div style="color:#ff3355;font-size:1.2rem;font-weight:900;margin-bottom:15px">فشل الدفاع!</div>
+        <div style="color:#ff9955;font-size:0.85rem;margin-bottom:15px">الدفاع الصح: ${correctId}</div>
+        <div style="color:#4a7a4a;font-size:0.75rem">SCORE: ${defenseState.score}</div>
+      </div>
+    `);
+    setTimeout(nextDefenseRound, 1200);
+  }
+}
+
+function endDefense() {
+  const best = parseInt(localStorage.getItem('nexus-defense-best') || '0');
+  if (defenseState.score > best) {
+    localStorage.setItem('nexus-defense-best', defenseState.score);
+  }
+
+  addXP(Math.floor(defenseState.score / 10));
+
+  openModal('🏆 انتهت اللعبة!', `
+    <div style="text-align:center;padding:30px 0">
+      <div style="font-size:4rem;margin-bottom:15px">🏆</div>
+      <div style="color:#00ff41;font-size:1.3rem;font-weight:900;margin-bottom:15px">نتيجتك النهائية</div>
+      <div style="color:#ffd700;font-size:2.5rem;font-weight:900;margin-bottom:10px">${defenseState.score}</div>
+      <div style="color:#4a7a4a;font-size:0.8rem;margin-bottom:25px">نقطة</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="startDefense()" style="flex:1;padding:12px;background:linear-gradient(135deg,#00ff41,#008f11);border:none;border-radius:10px;color:#000;font-weight:900;cursor:pointer;font-family:monospace">
+          🔄 العب تاني
+        </button>
+        <button onclick="openDefense()" style="flex:1;padding:12px;background:rgba(0,255,65,0.1);border:1px solid #00ff41;border-radius:10px;color:#00ff41;font-weight:900;cursor:pointer;font-family:monospace">
+          ← رجوع
+        </button>
+      </div>
+    </div>
+  `);
+}
+
+/* ============================================
+   🔍 OSINT LAB
+   ============================================ */
+function openOSINT() {
+  const tools = [
+    { id: 'phone', icon: '📱', name: 'Phone Info', desc: 'تحليل رقم' },
+    { id: 'email', icon: '📧', name: 'Email Lookup', desc: 'معلومات إيميل' },
+    { id: 'ip', icon: '📡', name: 'IP Lookup', desc: 'بحث عن IP' },
+    { id: 'hash', icon: '🔒', name: 'Hash Check', desc: 'فحص Hash' }
+  ];
+
+  const html = `<p style="color:#4a7a4a;font-size:0.8rem;margin-bottom:15px;text-align:center">4 أدوات جمع معلومات</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      ${tools.map(t => `
+        <div onclick="openOSINTTool('${t.id}')" style="
+          padding:14px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.3);
+          border-radius:10px;cursor:pointer;text-align:center
+        ">
+          <div style="font-size:1.8rem;margin-bottom:8px">${t.icon}</div>
+          <div style="color:#00d4ff;font-weight:900;font-size:0.82rem;margin-bottom:4px">${t.name}</div>
+          <div style="color:#4a7a4a;font-size:0.68rem">${t.desc}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  openModal('🔍 OSINT LAB', html);
+}
+
+function openOSINTTool(id) {
+  const configs = {
+    phone: { title: '📱 Phone Info', placeholder: '+201151739983' },
+    email: { title: '📧 Email Lookup', placeholder: 'user@example.com' },
+    ip: { title: '📡 IP Lookup', placeholder: '8.8.8.8' },
+    hash: { title: '🔒 Hash Check', placeholder: '5d41402abc4b2a76b9719d911017c592' }
+  };
+  const cfg = configs[id];
+
+  openModal(cfg.title, `
+    <input type="text" id="osintInput" placeholder="${cfg.placeholder}" style="
+      width:100%;padding:14px;background:#000;border:2px solid #00d4ff;border-radius:10px;
+      color:#00d4ff;font-family:monospace;font-size:0.9rem;outline:none;margin-bottom:15px;direction:ltr;text-align:left
+    " autocomplete="off">
+    
+    <button onclick="runOSINT('${id}')" style="
+      width:100%;padding:12px;background:linear-gradient(135deg,#00d4ff,#0088aa);
+      border:none;border-radius:10px;color:#000;font-weight:900;cursor:pointer;
+      font-family:monospace;font-size:0.9rem;margin-bottom:15px
+    ">🔍 بحث</button>
+
+    <div id="osintResult" style="
+      background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.3);
+      border-radius:10px;padding:15px;font-family:monospace;font-size:0.78rem;
+      line-height:1.8;min-height:60px;color:#00d4ff;display:none
+    "></div>
+
+    <button onclick="openOSINT()" style="
+      width:100%;padding:10px;background:rgba(0,255,65,0.08);
+      border:1px solid rgba(0,255,65,0.3);border-radius:8px;color:#00ff41;
+      cursor:pointer;font-family:monospace;font-weight:700;font-size:0.8rem;margin-top:10px
+    ">← رجوع</button>
+  `);
+}
+
+function runOSINT(id) {
+  const v = document.getElementById('osintInput').value.trim();
+  if (!v) return;
+
+  const r = document.getElementById('osintResult');
+  r.style.display = 'block';
+
+  if (id === 'phone') {
+    const codes = { '+20': '🇪🇬 مصر', '+966': '🇸🇦 السعودية', '+971': '🇦🇪 الإمارات', '+1': '🇺🇸 أمريكا', '+44': '🇬🇧 بريطانيا' };
+    let country = '🌍 غير معروف';
+    for (const c in codes) if (v.startsWith(c)) { country = codes[c]; break; }
+
+    r.innerHTML = `
+      <div style="color:#00ff41;font-weight:900;margin-bottom:10px">✅ النتيجة</div>
+      <div>📱 الرقم: <span style="color:#00d4ff">${v}</span></div>
+      <div>🌍 الدولة: <span style="color:#00d4ff">${country}</span></div>
+      <div style="margin-top:10px">
+        <a href="https://wa.me/${v.replace('+','').replace(/\D/g,'')}" target="_blank" style="color:#25D366;text-decoration:none">💬 WhatsApp</a> • 
+        <a href="https://t.me/${v}" target="_blank" style="color:#0088cc;text-decoration:none">✈️ Telegram</a>
+      </div>
+    `;
+    addXP(20);
+  }
+  else if (id === 'email') {
+    if (!v.includes('@')) { r.innerHTML = '<div style="color:#ff3355">❌ إيميل غير صحيح</div>'; return; }
+    const [user, domain] = v.split('@');
+    const providers = { 'gmail.com': 'Google', 'yahoo.com': 'Yahoo', 'outlook.com': 'Microsoft', 'icloud.com': 'Apple' };
+
+    r.innerHTML = `
+      <div style="color:#00ff41;font-weight:900;margin-bottom:10px">✅ معلومات الإيميل</div>
+      <div>👤 المستخدم: <span style="color:#00d4ff">${user}</span></div>
+      <div>🌐 النطاق: <span style="color:#00d4ff">${domain}</span></div>
+      <div>📡 المزود: <span style="color:#00d4ff">${providers[domain.toLowerCase()] || 'آخر'}</span></div>
+    `;
+    addXP(20);
+  }
+  else if (id === 'ip') {
+    fetch(`https://ipapi.co/${v}/json/`)
+      .then(res => res.json())
+      .then(d => {
+        if (d.error) { r.innerHTML = '<div style="color:#ff3355">❌ IP غير صحيح</div>'; return; }
+        r.innerHTML = `
+          <div style="color:#00ff41;font-weight:900;margin-bottom:10px">✅ معلومات IP</div>
+          <div>🌍 البلد: <span style="color:#00d4ff">${d.country_name || 'N/A'}</span></div>
+          <div>🏙️ المدينة: <span style="color:#00d4ff">${d.city || 'N/A'}</span></div>
+          <div>📡 المزود: <span style="color:#00d4ff">${d.org || 'N/A'}</span></div>
+          <div>📍 الإحداثيات: <span style="color:#00d4ff">${d.latitude || '?'}, ${d.longitude || '?'}</span></div>
+        `;
+        addXP(30);
+      })
+      .catch(() => r.innerHTML = '<div style="color:#ff3355">❌ فشل الاتصال</div>');
+  }
+  else if (id === 'hash') {
+    const hash = v.toLowerCase();
+    let type = 'Unknown';
+    if (hash.length === 32) type = 'MD5';
+    else if (hash.length === 40) type = 'SHA-1';
+    else if (hash.length === 64) type = 'SHA-256';
+    else if (hash.length === 128) type = 'SHA-512';
+
+    const db = {
+      '5d41402abc4b2a76b9719d911017c592': 'hello',
+      'e10adc3949ba59abbe56e057f20f883e': '123456',
+      '5f4dcc3b5aa765d61d8327deb882cf99': 'password'
+    };
+    const cracked = db[hash];
+
+    r.innerHTML = `
+      <div style="color:#00ff41;font-weight:900;margin-bottom:10px">✅ تحليل Hash</div>
+      <div>📏 الطول: <span style="color:#00d4ff">${hash.length}</span></div>
+      <div>🔍 النوع: <span style="color:#00d4ff">${type}</span></div>
+      <div>${cracked ? `🔓 كلمة المرور: <span style="color:#00ff41">${cracked}</span>` : '⚠️ لم يتم الكسر'}</div>
+    `;
+    addXP(20);
+  }
+}
+
+/* ============================================
+   🏆 LEADERBOARD
+   ============================================ */
+function openLeaderboard() {
+  const xp = gameState.xp;
+  const lvl = gameState.level;
+  const rank = getRank(xp).name;
+
+  const completedHacks = JSON.parse(localStorage.getItem('nexus-hack-done') || '[]').length;
+  const bestDefense = localStorage.getItem('nexus-defense-best') || '0';
+
+  openModal('🏆 LEADERBOARD', `
+    <div style="text-align:center;padding:15px 0">
+      <div style="font-size:4rem;margin-bottom:15px">👤</div>
+      <div style="color:#00ff41;font-size:1.2rem;font-weight:900;letter-spacing:2px;margin-bottom:5px">HACKER</div>
+      <div style="color:#c084fc;font-size:0.9rem;margin-bottom:25px">${rank}</div>
+    </div>
+    
+    <div style="display:grid;gap:10px">
+      <div style="display:flex;justify-content:space-between;padding:12px;background:rgba(0,255,65,0.05);border:1px solid rgba(0,255,65,0.2);border-radius:10px">
+        <span style="color:#4a7a4a">⭐ إجمالي XP</span>
+        <span style="color:#00ff41;font-weight:900">${xp}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:12px;background:rgba(0,255,65,0.05);border:1px solid rgba(0,255,65,0.2);border-radius:10px">
+        <span style="color:#4a7a4a">🏆 المستوى</span>
+        <span style="color:#00ff41;font-weight:900">${lvl}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:12px;background:rgba(0,255,65,0.05);border:1px solid rgba(0,255,65,0.2);border-radius:10px">
+        <span style="color:#4a7a4a">🎯 مهام مكتملة</span>
+        <span style="color:#00ff41;font-weight:900">${completedHacks}/3</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:12px;background:rgba(0,255,65,0.05);border:1px solid rgba(0,255,65,0.2);border-radius:10px">
+        <span style="color:#4a7a4a">🛡️ أفضل دفاع</span>
+        <span style="color:#00ff41;font-weight:900">${bestDefense}</span>
+      </div>
+    </div>
+  `);
+}
+
+/* ============================================
+   ⚙️ SETTINGS
+   ============================================ */
+function openSettings() {
+  openModal('⚙️ الإعدادات', `
+    <div style="padding:15px 0">
+      <div style="display:grid;gap:10px">
+        <button onclick="resetProgress()" style="padding:14px;background:rgba(255,51,85,0.1);border:1px solid #ff3355;border-radius:10px;color:#ff3355;font-weight:900;cursor:pointer;font-family:monospace;font-size:0.85rem">
+          🗑️ إعادة تعيين التقدم
+        </button>
+        <button onclick="closeModal()" style="padding:14px;background:rgba(0,255,65,0.1);border:1px solid #00ff41;border-radius:10px;color:#00ff41;font-weight:900;cursor:pointer;font-family:monospace;font-size:0.85rem">
+          ✕ إغلاق
+        </button>
+      </div>
+
+      <div style="margin-top:20px;padding-top:15px;border-top:1px solid rgba(0,255,65,0.2)">
+        <div style="color:#4a7a4a;font-size:0.7rem;text-align:center;line-height:1.8">
+          EDMAN NEXUS v1.0.0<br>
+          By Edman Haking
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+function resetProgress() {
+  if (!confirm('متأكد إنك عايز تمسح كل تقدمك؟')) return;
+  localStorage.clear();
+  location.reload();
+}
+
+/* ============================================
+   CLOCK
+   ============================================ */
+function updateClock() {
+  const el = document.getElementById('currentTime');
+  if (el) el.textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ============================================
+   INIT
+   ============================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  renderSections();
+  updateUI();
+  console.log('%c👑 EDMAN NEXUS READY!', 'color:#00ff41;font-size:20px;font-weight:bold;text-shadow:0 0 10px #00ff41');
+  console.log('%c✅ 4 sections • 3 missions • 8 defenses • 4 OSINT tools', 'color:#ffd700;font-size:12px');
+});
+</script>
+</body>
+</html>
+      }
