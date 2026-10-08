@@ -1,0 +1,624 @@
+/* ═══════════════════════════════════════════
+   EDMAN NEXUS — Style Sheet
+   الجزء 1: المتغيرات + الثيمات + الأساسيات
+   ═══════════════════════════════════════════ */
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* 🎨 الثيم الافتراضي: Matrix Green */
+:root{
+  --primary:#00ff41;
+  --primary-dim:#008f11;
+  --primary-glow:rgba(0,255,65,0.5);
+  --accent:#00ffff;
+  --bg:#000000;
+  --bg-2:#0a0f0a;
+  --panel:rgba(0,10,0,0.75);
+  --border:rgba(0,255,65,0.3);
+  --border-hover:rgba(0,255,65,0.7);
+  --text:#e0ffe0;
+  --text-dim:#4a7a4a;
+  --gold:#ffd700;
+  --red:#ff3355;
+  --purple:#a855f7;
+}
+
+/* 🔴 ثيم Matrix Red */
+[data-theme="matrix-red"]{
+  --primary:#ff3355;
+  --primary-dim:#aa2233;
+  --primary-glow:rgba(255,51,85,0.5);
+  --accent:#ff9955;
+  --bg:#0a0000;
+  --bg-2:#1a0505;
+  --panel:rgba(10,0,0,0.75);
+  --border:rgba(255,51,85,0.3);
+  --border-hover:rgba(255,51,85,0.7);
+  --text:#ffe0e5;
+  --text-dim:#9e6a70;
+}
+
+/* 🔵 ثيم Matrix Blue */
+[data-theme="matrix-blue"]{
+  --primary:#00d4ff;
+  --primary-dim:#0088aa;
+  --primary-glow:rgba(0,212,255,0.5);
+  --accent:#00ffff;
+  --bg:#00050a;
+  --bg-2:#050a1a;
+  --panel:rgba(0,5,10,0.75);
+  --border:rgba(0,212,255,0.3);
+  --border-hover:rgba(0,212,255,0.7);
+  --text:#e0f5ff;
+  --text-dim:#4a7a95;
+}
+
+/* 🟡 ثيم Matrix Gold */
+[data-theme="matrix-gold"]{
+  --primary:#ffd700;
+  --primary-dim:#b8941f;
+  --primary-glow:rgba(255,215,0,0.5);
+  --accent:#ffaa00;
+  --bg:#0a0800;
+  --bg-2:#1a1400;
+  --panel:rgba(10,8,0,0.75);
+  --border:rgba(255,215,0,0.3);
+  --border-hover:rgba(255,215,0,0.7);
+  --text:#fff5d0;
+  --text-dim:#9a8a50;
+}
+
+body{
+  font-family:'JetBrains Mono','Cairo',monospace;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  transition:all 0.5s;
+}
+
+/* ═══ MATRIX BACKGROUND ═══ */
+#matrixCanvas{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  z-index:1;
+  background:var(--bg);
+  transition:background 0.5s;
+}
+
+.grid-overlay{
+  position:fixed;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+  background-image:
+    linear-gradient(color-mix(in srgb,var(--primary) 4%,transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb,var(--primary) 4%,transparent) 1px, transparent 1px);
+  background-size:50px 50px;
+}
+
+.scanline{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:2px;
+  background:linear-gradient(90deg, transparent, var(--primary), transparent);
+  z-index:100;
+  opacity:0.5;
+  animation:scanline 8s linear infinite;
+  pointer-events:none;
+}
+
+@keyframes scanline{0%{top:0}100%{top:100%}}
+
+.vignette{
+  position:fixed;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  background:radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.85) 100%);
+}
+
+/* ═══ MATRIX BUBBLES ═══ */
+#bubblesContainer{
+  position:fixed;
+  inset:0;
+  z-index:500;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+.matrix-bubble{
+  position:absolute;
+  padding:8px 16px;
+  background:rgba(0,255,65,0.1);
+  border:1px solid var(--primary);
+  border-radius:20px;
+  color:var(--primary);
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.75rem;
+  font-weight:700;
+  white-space:nowrap;
+  animation:bubblePop 2s ease-out forwards;
+  box-shadow:0 0 20px var(--primary-glow);
+  pointer-events:none;
+}
+
+@keyframes bubblePop{
+  0%{
+    opacity:0;
+    transform:translate(0,0) scale(0.5);
+  }
+  20%{
+    opacity:1;
+    transform:translate(var(--moveX),var(--moveY)) scale(1.1);
+  }
+  100%{
+    opacity:0;
+    transform:translate(calc(var(--moveX) * 2),calc(var(--moveY) * 2)) scale(0.8);
+  }
+}
+
+/* ═══ HEADER ═══ */
+.nexus-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 20px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  position:sticky;
+  top:0;
+  z-index:50;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.nexus-logo{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.nexus-logo-icon{
+  width:44px;height:44px;
+  border-radius:10px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dim));
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;
+  box-shadow:0 0 25px var(--primary-glow);
+  animation:logoPulse 2s ease-in-out infinite;
+}
+
+@keyframes logoPulse{
+  0%,100%{box-shadow:0 0 25px var(--primary-glow)}
+  50%{box-shadow:0 0 45px var(--primary-glow)}
+}
+
+.nexus-logo-text{
+  font-size:1.05rem;
+  font-weight:900;
+  color:var(--primary);
+  letter-spacing:3px;
+  text-shadow:0 0 10px var(--primary), 0 0 20px var(--primary);
+}
+
+.nexus-logo-sub{
+  font-size:0.55rem;
+  color:var(--text-dim);
+  letter-spacing:3px;
+}
+
+.nexus-header-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.nexus-stat{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  padding:6px 12px;
+  background:color-mix(in srgb,var(--primary) 8%,transparent);
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-size:0.72rem;
+  font-weight:700;
+  color:var(--primary);
+}
+
+.nexus-stat-val{
+  color:var(--primary);
+  text-shadow:0 0 8px var(--primary);
+}
+
+.nexus-rank{
+  padding:6px 14px;
+  background:linear-gradient(135deg,rgba(168,85,247,0.2),color-mix(in srgb,var(--primary) 10%,transparent));
+  border:1px solid rgba(168,85,247,0.4);
+  border-radius:8px;
+  font-size:0.72rem;
+  font-weight:700;
+  color:#c084fc;
+}
+
+.nexus-icon-btn{
+  width:38px;height:38px;
+  border-radius:10px;
+  background:color-mix(in srgb,var(--primary) 8%,transparent);
+  border:1px solid var(--border);
+  color:var(--primary);
+  font-size:1.1rem;
+  cursor:pointer;
+  transition:all 0.3s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.nexus-icon-btn:hover{
+  background:color-mix(in srgb,var(--primary) 20%,transparent);
+  transform:scale(1.1);
+  box-shadow:0 0 20px var(--primary-glow);
+}
+
+/* ═══ BODY ═══ */
+.nexus-body{
+  position:relative;
+  z-index:15;
+  max-width:1300px;
+  margin:0 auto;
+  padding:30px 20px 100px;
+}
+
+/* ═══ HERO ═══ */
+.nexus-hero{
+  text-align:center;
+  padding:30px 15px 40px;
+}
+
+.nexus-hero-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 16px;
+  background:color-mix(in srgb,var(--primary) 8%,transparent);
+  border:1px solid var(--border);
+  border-radius:20px;
+  font-size:0.7rem;
+  font-weight:700;
+  color:var(--primary);
+  letter-spacing:2px;
+  margin-bottom:18px;
+}
+
+.live-dot{
+  width:8px;height:8px;
+  background:var(--primary);
+  border-radius:50%;
+  box-shadow:0 0 10px var(--primary);
+  animation:livePulse 1.5s infinite;
+}
+
+@keyframes livePulse{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:0.5;transform:scale(1.4)}
+}
+
+.nexus-hero-title{
+  font-size:clamp(1.8rem,6vw,3rem);
+  font-weight:900;
+  letter-spacing:5px;
+  margin-bottom:12px;
+  line-height:1.2;
+}
+
+.nexus-hero-title .glitch{
+  color:var(--primary);
+  text-shadow:0 0 20px var(--primary), 0 0 40px var(--primary);
+}
+
+.nexus-hero-title .accent{
+  color:var(--gold);
+  text-shadow:0 0 20px var(--gold), 0 0 40px var(--gold);
+  margin-left:15px;
+}
+
+.nexus-hero-sub{
+  color:var(--text-dim);
+  font-size:0.9rem;
+  letter-spacing:1px;
+  margin-bottom:25px;
+}
+
+.nexus-progress{
+  max-width:500px;
+  margin:0 auto;
+  padding:15px;
+  background:color-mix(in srgb,var(--primary) 3%,transparent);
+  border:1px solid var(--border);
+  border-radius:12px;
+}
+
+.nexus-progress-header{
+  display:flex;
+  justify-content:space-between;
+  font-size:0.75rem;
+  font-weight:700;
+  color:var(--primary);
+  margin-bottom:8px;
+  letter-spacing:1px;
+}
+
+.nexus-progress-bar{
+  height:6px;
+  background:color-mix(in srgb,var(--primary) 10%,transparent);
+  border-radius:3px;
+  overflow:hidden;
+}
+
+.nexus-progress-fill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,var(--primary-dim),var(--primary));
+  box-shadow:0 0 15px var(--primary);
+  transition:width 0.8s ease;
+}
+/* ═══════════════════════════════════════════
+   EDMAN NEXUS — Style Sheet
+   الجزء 2: Sections + Modal + Responsive
+   ═══════════════════════════════════════════ */
+
+/* ═══ SECTIONS TITLE ═══ */
+.nexus-sections-title{
+  text-align:center;
+  font-size:1.05rem;
+  font-weight:900;
+  color:var(--primary);
+  letter-spacing:4px;
+  margin:25px 0 20px;
+  text-shadow:0 0 10px var(--primary);
+}
+
+.bracket{color:var(--gold);font-weight:900}
+
+/* ═══ NEURAL GRID ═══ */
+.neural-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+  gap:14px;
+}
+
+.neural-card{
+  padding:18px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  cursor:pointer;
+  transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  backdrop-filter:blur(10px);
+  position:relative;
+  overflow:hidden;
+}
+
+.neural-card::before{
+  content:'';
+  position:absolute;
+  top:0;right:0;
+  width:3px;height:100%;
+  background:var(--primary);
+  transform:scaleY(0);
+  transition:transform 0.4s;
+  box-shadow:0 0 20px var(--primary);
+}
+
+.neural-card:hover{
+  border-color:var(--border-hover);
+  transform:translateY(-5px);
+  box-shadow:0 15px 40px var(--primary-glow);
+}
+
+.neural-card:hover::before{transform:scaleY(1)}
+
+.neural-card-icon{
+  width:48px;height:48px;
+  border-radius:10px;
+  background:color-mix(in srgb,var(--primary) 10%,transparent);
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;
+  transition:all 0.4s;
+}
+
+.neural-card:hover .neural-card-icon{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dim));
+  box-shadow:0 0 25px var(--primary-glow);
+  transform:scale(1.1) rotate(-5deg);
+}
+
+.neural-card-title{
+  font-size:0.92rem;
+  font-weight:900;
+  color:var(--primary);
+  letter-spacing:1px;
+  text-shadow:0 0 8px var(--primary-glow);
+}
+
+.neural-card-desc{
+  font-size:0.72rem;
+  color:var(--text-dim);
+  line-height:1.5;
+}
+
+.neural-card-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding-top:10px;
+  border-top:1px solid color-mix(in srgb,var(--primary) 10%,transparent);
+  margin-top:auto;
+}
+
+.neural-card-badge{
+  padding:3px 8px;
+  background:color-mix(in srgb,var(--primary) 10%,transparent);
+  border:1px solid var(--border);
+  border-radius:6px;
+  font-size:0.6rem;
+  font-weight:700;
+  color:var(--primary);
+  letter-spacing:1px;
+}
+
+.neural-card-arrow{
+  color:var(--text-dim);
+  font-size:0.9rem;
+  transition:all 0.4s;
+}
+
+.neural-card:hover .neural-card-arrow{
+  color:var(--primary);
+  transform:translateX(-5px);
+}
+
+/* ═══ STATUS BAR ═══ */
+.nexus-status-bar{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 20px;
+  background:var(--panel);
+  border-top:1px solid var(--border);
+  font-size:0.68rem;
+  color:var(--text-dim);
+  z-index:50;
+  backdrop-filter:blur(20px);
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.status-item{display:flex;align-items:center;gap:6px;letter-spacing:1px}
+
+.status-dot{
+  width:6px;height:6px;
+  background:var(--primary);
+  border-radius:50%;
+  box-shadow:0 0 8px var(--primary);
+  animation:livePulse 1.5s infinite;
+}
+
+/* ═══ MODAL ═══ */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.95);
+  backdrop-filter:blur(10px);
+  z-index:1000;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+  animation:fadeIn 0.3s;
+}
+
+.modal-overlay.active{display:flex}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal-box{
+  background:linear-gradient(135deg,var(--bg-2),var(--bg));
+  border:2px solid var(--primary);
+  border-radius:16px;
+  padding:30px 25px;
+  max-width:550px;
+  width:100%;
+  max-height:90vh;
+  overflow-y:auto;
+  box-shadow:0 0 60px var(--primary-glow);
+  position:relative;
+  animation:modalSlide 0.4s ease;
+}
+
+.modal-box::-webkit-scrollbar{width:6px}
+.modal-box::-webkit-scrollbar-track{background:transparent}
+.modal-box::-webkit-scrollbar-thumb{background:var(--primary);border-radius:10px}
+
+@keyframes modalSlide{
+  from{transform:scale(0.9) translateY(30px);opacity:0}
+  to{transform:scale(1) translateY(0);opacity:1}
+}
+
+.modal-close{
+  position:absolute;
+  top:15px;left:15px;
+  width:32px;height:32px;
+  border-radius:50%;
+  background:rgba(255,51,85,0.1);
+  border:1px solid rgba(255,51,85,0.4);
+  color:var(--red);
+  cursor:pointer;
+  font-size:1rem;
+  transition:all 0.3s;
+  font-family:inherit;
+  z-index:10;
+}
+
+.modal-close:hover{
+  background:rgba(255,51,85,0.3);
+  transform:rotate(90deg);
+}
+
+.modal-title{
+  font-size:1.15rem;
+  font-weight:900;
+  color:var(--primary);
+  letter-spacing:2px;
+  margin-bottom:18px;
+  text-shadow:0 0 10px var(--primary);
+  padding-left:40px;
+}
+
+/* ═══ KEYFRAMES ═══ */
+@keyframes successPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.2)}
+}
+
+@keyframes attackShake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-5px)}
+  75%{transform:translateX(5px)}
+}
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width:768px){
+  .nexus-header{padding:10px 12px}
+  .nexus-logo-icon{width:38px;height:38px;font-size:1.2rem}
+  .nexus-logo-text{font-size:0.85rem;letter-spacing:2px}
+  .nexus-logo-sub{font-size:0.5rem}
+  .nexus-stat{padding:5px 8px;font-size:0.65rem}
+  .nexus-rank{padding:5px 10px;font-size:0.65rem}
+  .nexus-icon-btn{width:34px;height:34px;font-size:1rem}
+
+  .nexus-body{padding:20px 12px 80px}
+  .nexus-hero-title{font-size:1.5rem;letter-spacing:3px}
+  .nexus-hero-sub{font-size:0.78rem}
+
+  .neural-grid{grid-template-columns:1fr;gap:10px}
+  .neural-card{padding:15px}
+  .neural-card-icon{width:42px;height:42px;font-size:1.3rem}
+  .neural-card-title{font-size:0.85rem}
+  .neural-card-desc{font-size:0.68rem}
+
+  .nexus-status-bar{padding:5px 12px;font-size:0.6rem}
+  .modal-box{padding:22px 18px}
+  .modal-title{font-size:1rem}
+}
