@@ -679,6 +679,7 @@ setInterval(drawMatrix, 40);
 const SECTIONS = [
   { id: 'hack', icon: '🎯', nameAr: 'محاكي الاختراق', desc: '3 مهام اختراق تفاعلية', badge: 'HACK' },
   { id: 'defense', icon: '🛡️', nameAr: 'ساحة الدفاع', desc: 'صد 10 هجمات سيبرانية', badge: 'DEFEND' },
+  { id: 'ai', icon: '🤖', nameAr: 'معركة AI', desc: 'هاجم أو دافع ضد AI', badge: 'AI' },
   { id: 'osint', icon: '🔍', nameAr: 'مختبر التحليل', desc: '4 أدوات جمع معلومات', badge: 'OSINT' },
   { id: 'leaderboard', icon: '🏆', nameAr: 'لوحة الصدارة', desc: 'إحصائياتك وترتيبك', badge: 'RANK' }
 ];
@@ -710,6 +711,7 @@ function renderSections() {
 function openSection(id) {
   if (id === 'hack') openHack();
   else if (id === 'defense') openDefense();
+  else if (id === 'ai') openAIBattle();
   else if (id === 'osint') openOSINT();
   else if (id === 'leaderboard') openLeaderboard();
 }
@@ -1268,7 +1270,120 @@ function runOSINT(id) {
     addXP(20);
   }
 }
+/* ============================================
+   🤖 AI BATTLE
+   ============================================ */
+const AI_ATTACKS = [
+  { type: 'DDoS', icon: '💣', counter: 'firewall' },
+  { type: 'Phishing', icon: '🎣', counter: 'training' },
+  { type: 'Malware', icon: '🦠', counter: 'antivirus' },
+  { type: 'SQL Injection', icon: '💉', counter: 'waf' },
+  { type: 'Brute Force', icon: '🔨', counter: 'mfa' },
+  { type: 'Ransomware', icon: '🔒', counter: 'backup' }
+];
 
+const AI_DEFENSES = [
+  { id: 'firewall', icon: '🔥', name: 'Firewall' },
+  { id: 'antivirus', icon: '💊', name: 'Antivirus' },
+  { id: 'training', icon: '🎓', name: 'Training' },
+  { id: 'waf', icon: '🛡️', name: 'WAF' },
+  { id: 'mfa', icon: '🔐', name: 'MFA' },
+  { id: 'backup', icon: '💾', name: 'Backup' }
+];
+
+let aiBattleState = { round: 0, score: 0, total: 6 };
+
+function openAIBattle() {
+  aiBattleState = { round: 0, score: 0, total: 6 };
+  nextAIBattle();
+}
+
+function nextAIBattle() {
+  aiBattleState.round++;
+
+  if (aiBattleState.round > aiBattleState.total) {
+    return endAIBattle();
+  }
+
+  const attack = AI_ATTACKS[Math.floor(Math.random() * AI_ATTACKS.length)];
+  const tools = [...AI_DEFENSES].sort(() => Math.random() - 0.5);
+
+  const toolsHTML = tools.map(t => `
+    <button onclick="answerAI('${t.id}', '${attack.counter}')" style="
+      padding:12px;background:rgba(0,255,65,0.08);border:1px solid rgba(0,255,65,0.4);
+      border-radius:8px;color:#00ff41;cursor:pointer;font-weight:700;font-size:0.75rem;font-family:monospace
+    ">
+      ${t.icon} ${t.name}
+    </button>
+  `).join('');
+
+  openModal(`🤖 AI BATTLE — ROUND ${aiBattleState.round}/${aiBattleState.total}`, `
+    <div style="text-align:center;margin-bottom:15px">
+      <div style="color:#4a7a4a;font-size:0.75rem">SCORE: <span style="color:#ffd700;font-weight:900">${aiBattleState.score}</span></div>
+    </div>
+    
+    <div style="text-align:center;padding:20px;background:rgba(168,85,247,0.1);border:2px solid #a855f7;border-radius:12px;margin-bottom:18px;animation:attackShake 0.5s">
+      <div style="font-size:3rem;margin-bottom:10px">${attack.icon}</div>
+      <div style="color:#a855f7;font-size:1.1rem;font-weight:900">⚔️ ${attack.type}</div>
+      <div style="color:#c084fc;font-size:0.72rem;margin-top:5px">AI يهاجم! اختر الدفاع الصح</div>
+    </div>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${toolsHTML}
+    </div>
+  `);
+}
+
+function answerAI(choice, correct) {
+  const isCorrect = choice === correct;
+  if (isCorrect) aiBattleState.score += 100;
+
+  const emoji = isCorrect ? '✅' : '❌';
+  const msg = isCorrect ? 'دفاع ناجح!' : 'اختراق ناجح!';
+  const color = isCorrect ? '#00ff41' : '#ff3355';
+
+  openModal(`${emoji} ${msg}`, `
+    <div style="text-align:center;padding:30px 0">
+      <div style="font-size:4rem;color:${color};margin-bottom:15px">${emoji}</div>
+      <div style="color:${color};font-size:1.2rem;font-weight:900;margin-bottom:15px">${msg}</div>
+      ${isCorrect ? '<div style="color:#ffd700;font-size:1rem;margin-bottom:15px">+100 نقطة</div>' : ''}
+      <div style="color:#4a7a4a;font-size:0.75rem">SCORE: ${aiBattleState.score}</div>
+    </div>
+  `);
+
+  setTimeout(nextAIBattle, isCorrect ? 800 : 1200);
+}
+
+function endAIBattle() {
+  const best = parseInt(localStorage.getItem('nexus-ai-best') || '0');
+  if (aiBattleState.score > best) {
+    localStorage.setItem('nexus-ai-best', aiBattleState.score);
+  }
+
+  addXP(Math.floor(aiBattleState.score / 10));
+
+  openModal('🏆 انتهت المعركة!', `
+    <div style="text-align:center;padding:30px 0">
+      <div style="font-size:4rem;margin-bottom:15px">🤖</div>
+      <div style="color:#00ff41;font-size:1.3rem;font-weight:900;margin-bottom:15px">النتيجة النهائية</div>
+      <div style="color:#ffd700;font-size:2.5rem;font-weight:900;margin-bottom:10px">${aiBattleState.score}</div>
+      <div style="color:#4a7a4a;font-size:0.8rem;margin-bottom:25px">نقطة</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="openAIBattle()" style="flex:1;padding:12px;background:linear-gradient(135deg,#a855f7,#7c3aed);border:none;border-radius:10px;color:#fff;font-weight:900;cursor:pointer;font-family:monospace">
+          🔄 العب تاني
+        </button>
+        <button onclick="closeModal()" style="flex:1;padding:12px;background:rgba(0,255,65,0.1);border:1px solid #00ff41;border-radius:10px;color:#00ff41;font-weight:900;cursor:pointer;font-family:monospace">
+          ✕ إغلاق
+        </button>
+      </div>
+    </div>
+  `);
+}
+
+/* ============================================
+   🏆 LEADERBOARD
+   ============================================ */
+function openLeaderboard() {
 /* ============================================
    🏆 LEADERBOARD
    ============================================ */
